@@ -148,6 +148,33 @@ sub login {
   return $self->user_token;
 }
 
+=item logout
+
+Revokes the token and logs out the current application user. Returns false if the
+user is not logged in.
+
+=cut
+sub logout {
+  my $self = shift;
+
+  return 0 if (! defined $self->user_token);
+
+  my $uri = URI::Template
+    ->new('/{organization}/{application}/users/{username}/revoketoken?token={token}')
+    ->process(
+      organization => $self->organization,
+      application  => $self->application,
+      username     => $self->user_token->{'user'}->{'username'},
+      token        => $self->user_token->{'access_token'}
+  );
+
+  my $token = $self->PUT($uri, {});
+
+  $self->user_token(undef);
+
+  return $token;
+}
+
 =item admin_login ( $username, $password )
 
 Performs admin user authentication. Returns the user token for the
@@ -155,7 +182,7 @@ logged in user. The token is also kept in memory and used for subsequent
 authentication of requests.
 
 =cut
-sub management_login {
+sub admin_login {
   my ($self, $username, $password) = @_;
 
   my %request = (
