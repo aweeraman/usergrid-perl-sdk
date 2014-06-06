@@ -198,6 +198,31 @@ sub admin_login {
   return $self->user_token;
 }
 
+=item admin_logout
+
+Revokes the token and logs out the current admin user. Returns false if the
+admin user is not logged in.
+
+=cut
+sub admin_logout {
+  my $self = shift;
+
+  return 0 if (! defined $self->user_token);
+
+  my $uri = URI::Template
+    ->new('/management/users/{username}/revoketoken?token={token}')
+    ->process(
+      username => $self->user_token->{'user'}->{'username'},
+      token    => $self->user_token->{'access_token'}
+  );
+
+  my $token = $self->PUT($uri, {});
+
+  $self->user_token(undef);
+
+  return $token;
+}
+
 =back
 
 =head2 Entities

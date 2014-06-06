@@ -4,6 +4,7 @@ use warnings;
 use Usergrid::Client;
 use IO::Socket::INET;
 use Test::More;
+use Data::Dumper;
 
 # TEST DATA
 our $hostname        = 'localhost';
@@ -11,8 +12,8 @@ our $port            = '8080';
 our $api_url         = "http://$hostname:$port";
 our $organization    = 'test-organization';
 our $application     = 'test-app';
-our $username        = 'testuser';
-our $password        = 'Testuser123$';
+our $username        = 'superuser';
+our $password        = 'superuser';
 ###########
 
 if (_check_port($hostname, $port)) {
@@ -28,7 +29,7 @@ sub _check_port {
   return 1;
 }
 
-my ($user, $token, $return);
+my ($collection, $token, $result);
 
 # Create the client object that will be used for all subsequent requests
 my $client = Usergrid::Client->new(
@@ -38,26 +39,22 @@ my $client = Usergrid::Client->new(
   trace        => 0
 );
 
-# Create a test user
-$user = $client->add_entity("users", { username=>$username, password=>$password });
+$token = $client->admin_login($username, $password);
 
-$token = $client->login($username, $password);
+$result = eval {
+  $collection = $client->get_collection("books");
+};
+
+ok ( $@ eq '', "no errors during admin login" );
 
 ok ( $token->{user}->{username} eq $username, "user logged in" );
 
-$return = $client->logout();
+$result = $client->admin_logout();
 
-ok ( $return->{'action'} =~ /revoked/, "user token revoked" );
+ok ( $result->{'action'} =~ /revoked/, "admin token revoked" );
 
-# Should return undef if the user is deleted
-$return = eval {
-  $client->delete_entity($user);
+$result = eval {
+  $collection = $client->get_collection("books");
 };
 
-ok ( ! defined $return, "did not log out properly");
-
-ok ( $client->logout() == 0, "logout returns null if user is already logged out");
-
-$client->login($username, $password);
-
-$client->delete_entity($user);
+ok ( $@ =~ /Unauthorized/, "successful logout" );
