@@ -111,6 +111,18 @@ my $client = Usergrid::Client->new(
 );
 
 $client->login($username, $password);
+
+# To logout and clear the access token
+$client->logout();
+```
+
+To login as an admin:
+
+```perl
+$client->admin_login($username, $password);
+
+# To logout and clear the admin access token
+$client->admin_logout();
 ```
 
 For troubleshooting the requests and responses, tracing can be enabled, which
