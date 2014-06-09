@@ -143,6 +143,7 @@ To get more details on the API, read the following perldocs:
     Usergrid::Client
     Usergrid::Collection
     Usergrid::Entity
+    Usergrid::Request
 
 ### Entities
 
